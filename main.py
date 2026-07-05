@@ -78,35 +78,35 @@ def scrape_new_motors():
                 continue
             feldolgozott_idek.add(hirdetes_id)
             
-            # Megnézzük, benne van-e már a bázisban
+            
             cursor.execute("SELECT id FROM motorok WHERE id = ?", (hirdetes_id,))
             
             if cursor.fetchone() is None:
                 cim = link_elem.text.strip() or link_elem.get('title', 'Suzuki GSX-R')
                 teljes_link = f"https://www.kepesmotor.hu{href}"
                 
-                # --- Részletek letöltése a konkrét hirdetésből ---
+                
                 try:
                     ad_resp = requests.get(teljes_link, headers=HEADERS, timeout=10)
                     ad_soup = BeautifulSoup(ad_resp.text, 'html.parser')
                     
-                    # Kép kinyerése
+                    
                     kep_meta = ad_soup.find('meta', property='og:image')
                     kep_url = kep_meta['content'] if kep_meta else None
                     
-                    # Teljes leírás kinyerése
+                    
                     desc_meta = ad_soup.find('meta', property='og:description')
                     teljes_leiras = desc_meta['content'] if desc_meta else "Nincs megadva leírás."
                     
-                    # Ár kinyerése
+                    
                     ar_elem = ad_soup.find(string=re.compile(r'Ft$'))
                     ar = ar_elem.strip() if ar_elem else "Nincs megadott ár"
                     
-                    # Évjárat kinyerése (2003-2006 között keresve)
+                    
                     evjarat_match = re.search(r'(200[3-6])', cim + ad_soup.text)
                     evjarat = evjarat_match.group(1) if evjarat_match else "Ismeretlen"
                     
-                    # Okmányok vizsgálata a teljes szövegen
+                    
                     utcai = 1 if is_street_legal(cim, ad_soup.text) else 0
                     
                 except Exception as e:
@@ -148,7 +148,7 @@ async def on_ready():
     if not motor_figyelo.is_running():
         motor_figyelo.start()
 
-# Automatikus kereső (60 percenként fut)
+
 @tasks.loop(minutes=60)
 async def motor_figyelo():
     print("Képesmotor ellenőrzése...")
